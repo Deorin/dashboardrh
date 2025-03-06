@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Campanhas RH Expo (Fev)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #6419e6;
+            --secondary-color: #d446ff;
+            --dark-bg: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #ffffff;
+            --text-secondary: #b3b3b3;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --danger-color: #f44336;
+            --border-radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+        }
+
+        .dashboard-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .card-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .card-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .tab {
+            padding: 15px 20px;
+            cursor: pointer;
+            flex: 1;
+            text-align: center;
+            background-color: transparent;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .tab.active {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .chart-container {
+    height: 300px; /* Altura fixa para consistência */
+    max-height: 400px; /* Limita a altura máxima */
+    width: 100%; /* Garante que ocupe 100% da largura disponível */
+    max-width: 100%; /* Evita que ultrapasse a largura do container pai */
+    margin-bottom: 30px;
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden; /* Garante que o gráfico não ultrapasse o container */
+}
+
+        .platforms-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .platform-card {
+            background: linear-gradient(145deg, var(--card-bg), #292929);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid;
+        }
+
+        .platform-card.linkedin {
+            border-left-color: #0077B5;
+        }
+
+        .platform-card.facebook {
+            border-left-color: #1877F2;
+        }
+
+        .platform-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .platform-icon {
+            width: 40px;
+            height: 40px;
+            margin-right: 15px;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .platform-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .metric {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: var(--border-radius);
+        }
+
+        .metric-title {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+
+        .funnel-container {
+            margin-top: 40px;
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .funnel {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .funnel-step {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+            position: relative;
+        }
+
+        .funnel-bar {
+            height: 60px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: var(--border-radius);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+            transition: width 1s ease;
+        }
+
+        .funnel-label {
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+
+        .funnel-value {
+            position: relative;
+            z-index: 1;
+        }
+
+        .explainer {
+            margin-top: 40px;
+            padding: 25px;
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .explainer h3 {
+            margin-bottom: 15px;
+            color: var(--secondary-color);
+        }
+
+        .explainer p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        th {
+            background-color: rgba(0, 0, 0, 0.2);
+            color: var(--secondary-color);
+        }
+
+        tr:hover {
+            background-color: rgba(100, 25, 230, 0.1);
+        }
+
+        .highlight {
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            margin-bottom: 20px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .toggle-label {
+            margin-right: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-summary, .platforms-section {
+                grid-template-columns: 1fr;
+            }
+
+            .platform-metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Dashboard Campanhas RH Expo (Fev)</h1>
+            <p class="subtitle">Período: 1 de fevereiro - 5 de março de 2025</p>
+        </header>
+
+        <div class="toggle-container">
+            <span class="toggle-label">Modo Simplificado</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="view-toggle" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="dashboard-summary">
+            <div class="card">
+                <div class="card-title">Investimento Total</div>
+                <div class="card-value">R$ 500,00</div>
+                <div class="card-label">Valor usado nas campanhas</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Pessoas Alcançadas</div>
+                <div class="card-value">73.633</div>
+                <div class="card-label">Pessoas que viram as campanhas</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Cliques Obtidos</div>
+                <div class="card-value">483</div>
+                <div class="card-label">Pessoas que clicaram nos anúncios</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Custo por Clique</div>
+                <div class="card-value">R$ 1,32</div>
+                <div class="card-label">Valor gasto para cada clique</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="openTab('visao-geral')">Visão Geral</button>
+            <button class="tab" onclick="openTab('funil')">Funil</button>
+            <button class="tab" onclick="openTab('plataformas')">Plataformas</button>
+            <button class="tab" onclick="openTab('campanhas')">Campanhas</button>
+        </div>
+
+        <div id="visao-geral" class="tab-content active">
+            <div class="chart-container">
+                <canvas id="investimentoChart"></canvas>
+            </div>
+            
+            <div class="explainer">
+                <h3>O que dizem esses números?</h3>
+                <p>Investimos um total de <span class="highlight">R$ 500,00</span> em campanhas digitais no LinkedIn e Facebook durante o período de 1 de fevereiro a 5 de março de 2025.</p>
+                
+                <p>Com esse investimento, conseguimos:</p>
+                <ul style="margin-left: 20px; line-height: 1.6;">
+                    <li>Mostrar nossos anúncios para <span class="highlight">73.633</span> pessoas diferentes</li>
+                    <li>Gerar <span class="highlight">483</span> cliques para o site</li>
+                    <li>Cada clique custou em média <span class="highlight">R$ 1,32</span></li>
+                </ul>
+                
+                <p>A distribuição do investimento foi:</p>
+                <ul style="margin-left: 20px; line-height: 1.6;">
+                    <li><span class="highlight">60%</span> no Facebook (R$ 477,39)</li>
+                    <li><span class="highlight">40%</span> no LinkedIn (R$ 160,00)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="funil" class="tab-content">
+            <div class="funnel-container">
+                <h2>Funil de Resultados</h2>
+                <p class="subtitle" style="margin-bottom: 30px;">Como as pessoas interagiram com nossas campanhas</p>
+                
+                <div class="funnel">
+                    <div class="funnel-step">
+                        <div class="funnel-label">Impressões</div>
+                        <div class="funnel-bar" style="width: 100%;">
+                            <span class="funnel-value">149.795</span>
+                        </div>
+                    </div>
+                    
+                    <div class="funnel-step">
+                        <div class="funnel-label">Pessoas Alcançadas</div>
+                        <div class="funnel-bar" style="width: 90%;">
+                            <span class="funnel-value">73.633</span>
+                        </div>
+                    </div>
+                    
+                    <div class="funnel-step">
+                        <div class="funnel-label">Cliques</div>
+                        <div class="funnel-bar" style="width: 25%;">
+                            <span class="funnel-value">483</span>
+                        </div>
+                    </div>
+                    
+                    <div class="funnel-step">
+                        <div class="funnel-label">Leads Estimados</div>
+                        <div class="funnel-bar" style="width: 10%;">
+                            <span class="funnel-value">57</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="explainer">
+                <h3>Entendendo o Funil</h3>
+                <p>O funil de marketing mostra como as pessoas interagem com nossas campanhas, desde ver o anúncio até se tornarem leads.</p>
+                
+                <p><span class="highlight">Impressões</span>: Número total de vezes que nossos anúncios foram exibidos (149.795 vezes).</p>
+                
+                <p><span class="highlight">Pessoas Alcançadas</span>: Número de pessoas diferentes que viram nossos anúncios pelo menos uma vez (73.633 pessoas).</p>
+                
+                <p><span class="highlight">Cliques</span>: Quantas pessoas clicaram em nossos anúncios para visitar o site (483 cliques).</p>
+                
+                <p><span class="highlight">Leads Estimados</span>: Pessoas que demonstraram interesse no produto após clicar (57 leads).</p>
+                
+                <p>A <span class="highlight">taxa de conversão</span> do funil foi de aproximadamente 8,7% (dos cliques para leads), que é considerada <span class="highlight">boa</span> para campanhas deste tipo.</p>
+            </div>
+        </div>
+
+        <div id="plataformas" class="tab-content">
+            <div class="platforms-section">
+                <div class="platform-card facebook">
+                    <div class="platform-header">
+                        <div class="platform-icon" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNNTA0IDI1NkM1MDQgMTE5IDM5MyA4IDI1NiA4UzggMTE5IDggMjU2YzAgMTIzLjc4IDkwLjY5IDIyNi4zOCAyMDkuMjUgMjQ1VjMyNy42OWgtNjNWMjU2aDYzdi01NC42NGMwLTYyLjE1IDM3LTk2LjQ4IDkzLjY3LTk2LjQ4IDI3LjE0IDAgNTUuNTIgNC44NCA1NS41MiA0Ljg0djYxaC0zMS4yOGMtMzAuOCAwLTQwLjQxIDE5LjEyLTQwLjQxIDM4LjczVjI1Nmg2OC43OGwtMTEgNzEuNjloLTU3Ljc4VjUwMUMzOTEuMjggNDgwLjM1IDUwNCAzNzkuNzMgNTA0IDI1NnoiIGZpbGw9IiMxODc3RjIiLz48L3N2Zz4=');"></div>
+                        <h3>Facebook</h3>
+                    </div>
+                    <div class="platform-metrics">
+                        <div class="metric">
+                            <div class="metric-title">Investimento</div>
+                            <div class="metric-value">R$ 477,39</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-title">Pessoas Alcançadas</div>
+                            <div class="metric-value">70.583</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-title">Impressões</div>
+                            <div class="metric-value">145.712</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-title">Cliques</div>
+                            <div class="metric-value">459</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-title">Custo por Clique</div>
+                            <div class="metric-value">R$ 1,04</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-title">Frequência</div>
+                            <div class="metric-value">2,06</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="platform-card linkedin">
+                    <div class="platform-header">
+                        <div class="platform-icon" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48cGF0aCBkPSJNMTAwLjI4IDQ0OEg3LjRWMTQ4LjloOTIuODh6TTUzLjc5IDEyOC4wN0M0LjYgMTI4LjA3IDEgMTE1LjIxIDEgODUuNjZjMC0yOS40MiA5LjUyLTQyLjI4IDU0LjctNDIuMjggNDUuMiAwIDUzLjc5IDEyLjg2IDUzLjc5IDQyLjI4IDAgMjkuNTUtOC4zIDQyLjQxLTUzLjc5IDQyLjQxek00NDcgNDQ4aC05Mi43NlYzMDIuNGMwLTQ3LjMyLTE3LTc1LjI4LTU0Ljc1LTc1LjI4LTMwLjkyIDAtNDkuNCAxMi44Mi00OS40IDc1LjI4VjQ0OGgtOTIuOTRWMTQ4LjloOTIuOTR2NDAuNjRjMzAuOTItNTEuNTcgODIuNTUtNjQuODYgMTI3Ljg4LTY0Ljg2IDQ3LjMgMCA5MS43NSAxMC44MiA5MS43NSA4NS4wNkM0NDcgMjA5Ljc0IDQ0NyA0NDggNDQ3IDQ0OHoiIGZpbGw9IiMwMDc3QjUiLz48L3N2Zz4=');"></div>
+                        <h3>LinkedIn</h3>
+                    </div>
+                    <div class="platform-metrics">
+                        <div class="metric">
+                            <div class="metric-title">Investimento</div>
+                            <div class="metric-value">R$ 160,00</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-title">Pessoas Alcançadas</div>
+                            <div class="metric-value">3.050</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-title">Impressões</div>
+                            <div class="metric-value">4.083</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-title">Cliques</div>
+                            <div class="metric-value">24</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-title">Custo por Clique</div>
+                            <div class="metric-value">R$ 6,67</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-title">Taxa de Engajamento</div>
+                            <div class="metric-value">1,47%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="plataformasChart"></canvas>
+            </div>
+            
+            <div class="explainer">
+                <h3>Comparativo entre Plataformas</h3>
+                <p>Dividimos nosso investimento entre as duas principais plataformas de mídia social para negócios:</p>
+                
+                <p><span class="highlight">Facebook:</span> Recebeu a maior parte do investimento (60%) e entregou resultados com melhor custo-benefício:</p>
+                <ul style="margin-left: 20px; line-height: 1.6;">
+                    <li>Custo por clique mais baixo: R$ 1,04</li>
+                    <li>Alcance muito maior: 70.583 pessoas</li>
+                    <li>95% dos cliques totais vieram do Facebook</li>
+                </ul>
+                
+                <br><p><span class="highlight">LinkedIn:</span> Recebeu 40% do investimento e teve um custo mais alto por resultado:</p>
+                <ul style="margin-left: 20px; line-height: 1.6;">
+                    <li>Custo por clique mais alto: R$ 6,67</li>
+                    <li>Alcance mais limitado: 3.050 pessoas</li>
+                    <li>Taxa de engajamento de 1,47% (boa para o LinkedIn)</li>
+                </ul>
+                
+                <br><p>O Facebook foi mais eficiente em termos de custo, mas o LinkedIn pode ter alcançado um público mais qualificado para o negócio.</p>
+            </div>
+        </div>
+
+        <div id="campanhas" class="tab-content">
+            <h2>Desempenho por Campanha</h2>
+            <p class="subtitle" style="margin-bottom: 30px;">Detalhes de cada campanha executada</p>
+            
+            <table id="campanhasTable">
+                <thead>
+                    <tr>
+                        <th>Nome da Campanha</th>
+                        <th>Plataforma</th>
+                        <th>Investimento</th>
+                        <th>Alcance</th>
+                        <th>Cliques</th>
+                        <th>Custo/Clique</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>[LEADS] [LOTE1] [WHATS1] — Cópia — Cópia</td>
+                        <td>Facebook</td>
+                        <td>R$ 183,43</td>
+                        <td>6.120</td>
+                        <td>108</td>
+                        <td>R$ 1,70</td>
+                    </tr>
+                    <tr>
+                        <td>[LEADS] [LOTE1] [WHATS1] — Cópia</td>
+                        <td>Facebook</td>
+                        <td>R$ 140,31</td>
+                        <td>17.551</td>
+                        <td>268</td>
+                        <td>R$ 0,52</td>
+                    </tr>
+                    <tr>
+                        <td>[TD] [ONGOING] [RECONHECIMENTO] [1]</td>
+                        <td>Facebook</td>
+                        <td>R$ 111,87</td>
+                        <td>46.739</td>
+                        <td>41</td>
+                        <td>R$ 2,73</td>
+                    </tr>
+                    <tr>
+                        <td>[LEADS] [LOTE1] [WHATS1]</td>
+                        <td>Facebook</td>
+                        <td>R$ 41,78</td>
+                        <td>1.640</td>
+                        <td>57</td>
+                        <td>R$ 0,99</td>
+                    </tr>
+                    <tr>
+                        <td>Conversões no site - Feb 20, 2025</td>
+                        <td>LinkedIn</td>
+                        <td>R$ 60,00</td>
+                        <td>1.521</td>
+                        <td>17</td>
+                        <td>R$ 3,53</td>
+                    </tr>
+                    <tr>
+                        <td>Visitas ao site - Feb 26, 2025</td>
+                        <td>LinkedIn</td>
+                        <td>R$ 100,00</td>
+                        <td>1.529</td>
+                        <td>7</td>
+                        <td>R$ 14,29</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="chart-container">
+                <canvas id="campanhasChart"></canvas>
+            </div>
+            
+            <div class="explainer">
+                <h3>Análise de Campanhas</h3>
+                <p>Destacamos as campanhas com melhor desempenho:</p>
+                
+                <p><span class="highlight">[LEADS] [LOTE1] [WHATS1] — Cópia</span> (Facebook): Melhor custo-benefício com R$ 0,52 por clique e 268 cliques gerados.</p>
+                
+                <p><span class="highlight">[LEADS] [LOTE1] [WHATS1]</span> (Facebook): Também teve excelente desempenho com R$ 0,99 por clique.</p>
+                
+                <p><span class="highlight">[TD] [ONGOING] [RECONHECIMENTO] [1]</span> (Facebook): Foi a campanha com maior alcance (46.739 pessoas), mas gerou menos cliques proporcionalmente, sendo mais focada em reconhecimento de marca.</p>
+                
+                <p>As campanhas do LinkedIn tiveram custo mais alto por clique, com <span class="highlight">Visitas ao site</span> chegando a R$ 14,29 por clique, mas alcançaram um público mais qualificado e especializado.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Função para alternar entre abas
+        function openTab(tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tab");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            event.currentTarget.className += " active";
+        }
+
+        // Define a aba padrão como ativa
+        document.getElementById("visao-geral").style.display = "block";
+        document.getElementsByClassName("tab")[0].className += " active";
+
+        // Gráfico de Distribuição do Investimento (Visão Geral)
+var ctx1 = document.getElementById('investimentoChart').getContext('2d');
+var investimentoChart = new Chart(ctx1, {
+    type: 'pie',
+    data: {
+        labels: ['Facebook', 'LinkedIn'],
+        datasets: [{
+            data: [477.39, 160.00],
+            backgroundColor: ['#1877F2', '#A020F0']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false, // Desativa a proporção fixa para ajustar ao container
+        plugins: {
+            legend: {
+                position: 'top',
+            },
+            title: {
+                display: true,
+                text: 'Distribuição do Investimento'
+            }
+        }
+    }
+});
+
+        // Gráfico de Comparação entre Plataformas
+var ctx2 = document.getElementById('plataformasChart').getContext('2d');
+var plataformasChart = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+        labels: ['Investimento (R$)', 'Alcance', 'Cliques'],
+        datasets: [
+            {
+                label: 'Facebook',
+                data: [477.39, 70583, 459],
+                backgroundColor: '#1877F2'
+            },
+            {
+                label: 'LinkedIn',
+                data: [160.00, 3050, 24],
+                backgroundColor: '#A020F0'
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false, // Desativa a proporção fixa
+        scales: {
+            y: {
+                beginAtZero: true,
+                suggestedMax: 80000 // Ajuste para o maior valor (alcance do Facebook: 70.583)
+            }
+        },
+        plugins: {
+            legend: {
+                position: 'top',
+            },
+            title: {
+                display: true,
+                text: 'Comparação entre Plataformas'
+            }
+        }
+    }
+});
+
+        // Gráfico de Cliques por Campanha
+var ctx3 = document.getElementById('campanhasChart').getContext('2d');
+var campanhasChart = new Chart(ctx3, {
+    type: 'bar',
+    data: {
+        labels: ['Campanha 1 (FB)', 'Campanha 2 (FB)', 'Campanha 3 (FB)', 'Campanha 4 (FB)', 'Campanha 5 (LI)', 'Campanha 6 (LI)'],
+        datasets: [{
+            label: 'Cliques',
+            data: [108, 268, 41, 42, 17, 7],
+            backgroundColor: '#6419e6'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false, // Desativa a proporção fixa
+        scales: {
+            y: {
+                beginAtZero: true,
+                suggestedMax: 300, // Limita o máximo do eixo Y para valores realistas
+                ticks: {
+                    stepSize: 50 // Define incrementos de 50 para melhor legibilidade
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            },
+            title: {
+                display: true,
+                text: 'Cliques por Campanha'
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.label + ': ' + context.raw + ' cliques';
+                    }
+                }
+            }
+        }
+    }
+});
+    </script>
+</body>
+</html>
